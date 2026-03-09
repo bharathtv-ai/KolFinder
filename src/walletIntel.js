@@ -13,7 +13,7 @@ async function basescanGet(params) {
       apikey: BASESCAN_KEY || "YourApiKeyToken",
       ...params,
     }).toString();
-    const res = await axios.get(`https://api.basescan.org/api?${qs}`, { timeout: 15000 });
+    const res = await axios.get(`https://api.etherscan.io/v2/api?chainid=8453&${qs}`, { timeout: 15000 });
     if (res.data?.status === "1") return res.data.result;
     if (res.data?.message) console.log("[Basescan]", res.data.message);
     return [];
