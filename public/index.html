@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WALLET INTEL — BASE CHAIN</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;700;800&display=swap');
+
+:root {
+  --bg: #05070d;
+  --bg2: #090c15;
+  --bg3: #0d1020;
+  --bg4: #111428;
+  --border: #161c30;
+  --border2: #1e2640;
+  --green: #00ffaa;
+  --green2: rgba(0,255,170,0.1);
+  --red: #ff4060;
+  --yellow: #ffcc00;
+  --blue: #3d9eff;
+  --purple: #a855f7;
+  --orange: #ff8c42;
+  --text: #d0ddf5;
+  --text2: #6b7a99;
+  --muted: #3a4460;
+  --s: 2px solid var(--border);
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+body { background:var(--bg); color:var(--text); font-family:'Space Mono',monospace; font-size:12px; min-height:100vh; }
+
+/* Grid noise background */
+body::before {
+  content:'';
+  position:fixed; inset:0;
+  background-image: radial-gradient(circle at 20% 50%, rgba(0,255,170,0.03) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(61,158,255,0.03) 0%, transparent 40%);
+  pointer-events:none;
+}
+
+/* ── Header ── */
+header {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:14px 24px;
+  border-bottom:var(--s);
+  background:var(--bg2);
+  position:sticky; top:0; z-index:100;
+}
+.logo { font-family:'Syne',sans-serif; font-weight:800; font-size:16px; letter-spacing:0.08em; }
+.logo em { color:var(--green); font-style:normal; text-shadow:0 0 20px rgba(0,255,170,0.5); }
+.logo span { color:var(--text2); font-size:11px; font-weight:400; margin-left:12px; }
+
+/* ── Search bar ── */
+.search-zone {
+  padding:24px;
+  background:var(--bg2);
+  border-bottom:var(--s);
+}
+.search-label { font-size:10px; letter-spacing:0.15em; text-transform:uppercase; color:var(--text2); margin-bottom:10px; }
+.search-row { display:flex; gap:10px; }
+.search-input {
+  flex:1; padding:12px 16px;
+  background:var(--bg3); border:1px solid var(--border2);
+  color:var(--green); font-family:'Space Mono',monospace; font-size:13px;
+  border-radius:6px; outline:none;
+  transition:border-color 0.2s;
+}
+.search-input:focus { border-color:var(--green); box-shadow:0 0 0 3px rgba(0,255,170,0.08); }
+.search-input::placeholder { color:var(--muted); }
+.btn {
+  padding:12px 20px;
+  background:var(--green); color:#000;
+  font-family:'Syne',sans-serif; font-weight:700; font-size:13px;
+  border:none; border-radius:6px; cursor:pointer;
+  transition:opacity 0.15s;
+}
+.btn:hover { opacity:0.85; }
+.btn:disabled { opacity:0.4; cursor:not-allowed; }
+.btn-outline {
+  background:transparent; color:var(--green);
+  border:1px solid var(--green);
+}
+.btn-sm { padding:6px 12px; font-size:11px; }
+
+/* ── Layout ── */
+.main { display:grid; grid-template-columns:1fr 380px; min-height:calc(100vh - 120px); }
+
+/* ── Left panel ── */
+.left { border-right:var(--s); overflow-y:auto; }
+
+/* ── Section ── */
+.section { padding:20px 24px; border-bottom:var(--s); }
+.section-title {
+  font-size:9px; letter-spacing:0.18em; text-transform:uppercase;
+  color:var(--text2); margin-bottom:16px;
+  display:flex; align-items:center; gap:10px;
+}
+.section-title::after { content:''; flex:1; height:1px; background:var(--border); }
+.pill {
+  padding:2px 7px; border-radius:3px; font-size:9px; font-weight:700;
+  background:rgba(0,255,170,0.1); color:var(--green);
+}
+
+/* ── Token result header ── */
+.token-header {
+  display:flex; justify-content:space-between; align-items:flex-start;
+  padding:16px 20px;
+  background:var(--bg3); border-radius:8px; margin-bottom:16px;
+  border:1px solid var(--border2);
+}
+.token-symbol { font-family:'Syne',sans-serif; font-size:28px; font-weight:800; color:var(--green); }
+.token-meta { font-size:11px; color:var(--text2); margin-top:4px; }
+.token-mult {
+  font-family:'Syne',sans-serif; font-size:22px; font-weight:700;
+  color:var(--yellow);
+}
+.token-mult small { font-size:11px; color:var(--text2); display:block; text-align:right; }
+
+/* ── Wallet table ── */
+.wallet-table { width:100%; border-collapse:collapse; }
+.wallet-table th {
+  font-size:9px; letter-spacing:0.12em; text-transform:uppercase;
+  color:var(--text2); text-align:left; padding:8px 10px;
+  border-bottom:var(--s);
+}
+.wallet-table td { padding:10px; border-bottom:1px solid var(--border); vertical-align:top; }
+.wallet-table tr:last-child td { border-bottom:none; }
+.wallet-table tr:hover td { background:var(--bg3); }
+
+.grade {
+  display:inline-flex; align-items:center; justify-content:center;
+  width:28px; height:28px; border-radius:6px;
+  font-family:'Syne',sans-serif; font-weight:800; font-size:14px;
+}
+.grade-S { background:rgba(255,204,0,0.2); color:var(--yellow); border:1px solid rgba(255,204,0,0.4); }
+.grade-A { background:rgba(0,255,170,0.15); color:var(--green); border:1px solid rgba(0,255,170,0.3); }
+.grade-B { background:rgba(61,158,255,0.15); color:var(--blue); border:1px solid rgba(61,158,255,0.3); }
+.grade-C { background:rgba(168,85,247,0.15); color:var(--purple); border:1px solid rgba(168,85,247,0.3); }
+.grade-D { background:rgba(255,64,96,0.15); color:var(--red); border:1px solid rgba(255,64,96,0.3); }
+
+.wallet-addr {
+  font-size:11px; color:var(--blue);
+  text-decoration:none;
+}
+.wallet-addr:hover { color:var(--green); }
+
+.stat-chip {
+  display:inline-block; padding:2px 6px; border-radius:3px;
+  font-size:10px; background:var(--bg4); color:var(--text2);
+  margin:1px;
+}
+.stat-chip.hot { background:rgba(255,140,66,0.15); color:var(--orange); }
+.stat-chip.win { background:rgba(0,255,170,0.1); color:var(--green); }
+
+.track-btn {
+  padding:4px 10px; font-size:10px; border-radius:4px;
+  background:transparent; border:1px solid var(--border2);
+  color:var(--text2); cursor:pointer; font-family:'Space Mono',monospace;
+  transition:all 0.15s;
+}
+.track-btn:hover { border-color:var(--green); color:var(--green); }
+.track-btn.tracking { border-color:var(--green); color:var(--green); background:var(--green2); }
+
+/* ── Right panel: tracked wallets + alerts ── */
+.right { background:var(--bg2); overflow-y:auto; }
+
+.alert-card {
+  padding:12px 16px; margin-bottom:1px;
+  background:var(--bg3); border-left:3px solid var(--green);
+  animation:slideIn 0.3s ease;
+}
+@keyframes slideIn { from { opacity:0; transform:translateX(10px); } to { opacity:1; transform:translateX(0); } }
+
+.alert-token { font-family:'Syne',sans-serif; font-size:15px; font-weight:700; }
+.alert-meta { font-size:10px; color:var(--text2); margin-top:4px; }
+.alert-time { font-size:9px; color:var(--muted); margin-top:4px; }
+
+.tracked-wallet {
+  padding:10px 16px;
+  display:flex; align-items:center; justify-content:space-between;
+  border-bottom:1px solid var(--border);
+}
+.tracked-wallet:hover { background:var(--bg3); }
+
+/* ── Loading ── */
+.loading {
+  display:flex; align-items:center; gap:10px;
+  padding:30px; color:var(--text2); font-size:12px;
+}
+.spinner {
+  width:16px; height:16px; border:2px solid var(--border2);
+  border-top-color:var(--green); border-radius:50%;
+  animation:spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform:rotate(360deg); } }
+
+.empty { padding:30px; text-align:center; color:var(--muted); }
+
+.progress-log {
+  background:var(--bg); border:1px solid var(--border);
+  border-radius:6px; padding:12px; margin-bottom:16px;
+  max-height:120px; overflow-y:auto; font-size:10px;
+  color:var(--text2); line-height:1.8;
+}
+.progress-log .pl-line { }
+.progress-log .pl-ok { color:var(--green); }
+.progress-log .pl-warn { color:var(--yellow); }
+
+/* ── KOL badge ── */
+.kol-badge {
+  display:inline-block; padding:2px 8px; border-radius:3px;
+  font-size:9px; font-weight:700; letter-spacing:0.1em;
+  background:rgba(255,204,0,0.15); color:var(--yellow);
+  border:1px solid rgba(255,204,0,0.3);
+}
+
+/* Top trades list */
+.top-trades { margin-top:6px; }
+.top-trade { font-size:10px; color:var(--text2); }
+.top-trade span { color:var(--green); }
+
+/* scrollbars */
+::-webkit-scrollbar { width:3px; }
+::-webkit-scrollbar-track { background:var(--bg); }
+::-webkit-scrollbar-thumb { background:var(--border2); }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo"><em>◈ WALLET INTEL</em><span>BASE CHAIN · KOL TRACKER</span></div>
+  <div style="display:flex;gap:16px;align-items:center">
+    <span id="trackedCount" style="font-size:11px;color:var(--text2)">0 wallets tracked</span>
+    <span id="alertCount" style="font-size:11px;color:var(--green)">0 alerts</span>
+  </div>
+</header>
+
+<div class="search-zone">
+  <div class="search-label">Paste a token contract address to find who bought early and score their track record</div>
+  <div class="search-row">
+    <input
+      class="search-input"
+      id="tokenInput"
+      placeholder="0x... token contract address on Base"
+      spellcheck="false"
+    />
+    <button class="btn" id="analyzeBtn" onclick="analyzeToken()">ANALYZE</button>
+  </div>
+  <div id="exampleTokens" style="margin-top:10px;font-size:10px;color:var(--muted)">
+    Examples: paste any Base/Virtuals token CA · bot finds early buyers · scores their history
+  </div>
+</div>
+
+<div class="main">
+
+  <!-- Left: analysis results -->
+  <div class="left" id="leftPanel">
+    <div class="empty" style="padding:60px 24px">
+      <div style="font-size:32px;margin-bottom:16px">🔍</div>
+      <div style="color:var(--text2);font-size:13px">Paste a token address above to start<br>finding KOL wallets</div>
+      <div style="color:var(--muted);font-size:11px;margin-top:12px">Bot will find who bought earliest<br>and score their full trading history</div>
+    </div>
+  </div>
+
+  <!-- Right: tracked wallets + alerts -->
+  <div class="right">
+    <div class="section">
+      <div class="section-title">Live Alerts <span class="pill" id="liveAlertPill">0</span></div>
+      <div id="alertsContainer">
+        <div class="empty">No alerts yet.<br>Track wallets to receive buy alerts.</div>
+      </div>
+    </div>
+    <div class="section">
+      <div class="section-title">Tracked Wallets <span class="pill" id="trackedPill">0</span></div>
+      <div id="trackedContainer">
+        <div class="empty">No wallets tracked yet.</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  const trackedWallets = new Map(); // addr -> data
+  const alerts = [];
+  let analysisResult = null;
+  let pollInterval = null;
+
+  // ── Analyze token ─────────────────────────────────────────────────────
+  async function analyzeToken() {
+    const addr = document.getElementById('tokenInput').value.trim();
+    if (!addr || !addr.startsWith('0x') || addr.length !== 42) {
+      showError('Please enter a valid contract address (0x...)');
+      return;
+    }
+
+    const btn = document.getElementById('analyzeBtn');
+    btn.disabled = true;
+    btn.textContent = 'ANALYZING...';
+
+    showLoading();
+
+    try {
+      const res = await fetch(`/api/analyze?token=${addr}`);
+      const data = await res.json();
+
+      if (data.error) {
+        showError(data.error);
+        return;
+      }
+
+      analysisResult = data;
+      renderAnalysis(data);
+    } catch (e) {
+      showError('Analysis failed: ' + e.message);
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'ANALYZE';
+    }
+  }
+
+  function showLoading() {
+    document.getElementById('leftPanel').innerHTML = `
+      <div class="section">
+        <div class="loading"><div class="spinner"></div> Fetching early buyers from Base chain...</div>
+        <div class="progress-log" id="progressLog">
+          <div class="pl-line">⬡ Connecting to Base chain...</div>
+        </div>
+      </div>`;
+
+    // Simulate progress log
+    const steps = [
+      { t: 500, msg: '✓ Token found on DexScreener', cls: 'pl-ok' },
+      { t: 1500, msg: '⬡ Fetching early transfer events from Basescan...', cls: '' },
+      { t: 3000, msg: '⬡ Identifying unique buyer wallets...', cls: '' },
+      { t: 5000, msg: '✓ Found early buyers, analyzing histories...', cls: 'pl-ok' },
+      { t: 7000, msg: '⬡ Scoring each wallet (this takes ~30s)...', cls: '' },
+      { t: 9000, msg: '⬡ Checking historical performance for each token...', cls: '' },
+      { t: 12000, msg: '⬡ Calculating KOL scores...', cls: '' },
+    ];
+    steps.forEach(({ t, msg, cls }) => {
+      setTimeout(() => {
+        const log = document.getElementById('progressLog');
+        if (log) log.innerHTML += `<div class="pl-line ${cls}">${msg}</div>`;
+      }, t);
+    });
+  }
+
+  function showError(msg) {
+    document.getElementById('leftPanel').innerHTML = `
+      <div class="section">
+        <div style="padding:30px;color:var(--red);font-size:12px">⚠ ${msg}</div>
+      </div>`;
+  }
+
+  // ── Render analysis results ───────────────────────────────────────────
+  function renderAnalysis(data) {
+    const { symbol, multiplierSinceLaunch, wallets, kols, pairCreatedAt } = data;
+    const launched = pairCreatedAt ? new Date(pairCreatedAt).toLocaleDateString() : 'Unknown';
+
+    let html = `
+      <div class="section">
+        <div class="token-header">
+          <div>
+            <div class="token-symbol">$${symbol || '???'}</div>
+            <div class="token-meta">Launched ${launched} · ${wallets.length} early wallets analyzed</div>
+          </div>
+          <div>
+            <div class="token-mult">${multiplierSinceLaunch?.toFixed(1) || '?'}x</div>
+            <small>since launch</small>
+          </div>
+        </div>
+
+        <div style="display:flex;gap:16px;margin-bottom:20px">
+          <div style="flex:1;background:var(--bg3);border-radius:6px;padding:14px;border:1px solid var(--border2)">
+            <div style="font-size:9px;color:var(--text2);text-transform:uppercase;letter-spacing:0.12em;margin-bottom:6px">KOL Wallets Found</div>
+            <div style="font-family:'Syne',sans-serif;font-size:24px;font-weight:800;color:var(--yellow)">${kols.length}</div>
+          </div>
+          <div style="flex:1;background:var(--bg3);border-radius:6px;padding:14px;border:1px solid var(--border2)">
+            <div style="font-size:9px;color:var(--text2);text-transform:uppercase;letter-spacing:0.12em;margin-bottom:6px">Avg KOL Score</div>
+            <div style="font-family:'Syne',sans-serif;font-size:24px;font-weight:800;color:var(--green)">
+              ${kols.length ? Math.round(kols.reduce((s,k)=>s+k.score,0)/kols.length) : '–'}
+            </div>
+          </div>
+          <div style="flex:1;background:var(--bg3);border-radius:6px;padding:14px;border:1px solid var(--border2)">
+            <div style="font-size:9px;color:var(--text2);text-transform:uppercase;letter-spacing:0.12em;margin-bottom:6px">Avg Lead Time</div>
+            <div style="font-family:'Syne',sans-serif;font-size:24px;font-weight:800;color:var(--blue)">
+              ${kols.length ? (kols.reduce((s,k)=>s+parseFloat(k.avgLeadTimeHours||0),0)/kols.length).toFixed(1)+'h' : '–'}
+            </div>
+          </div>
+        </div>
+
+        <div class="section-title">All Wallets Ranked by Score</div>
+        <table class="wallet-table">
+          <thead>
+            <tr>
+              <th>Grade</th>
+              <th>Wallet</th>
+              <th>Bought</th>
+              <th>WR</th>
+              <th>Avg</th>
+              <th>10x</th>
+              <th>Lead</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            ${wallets.map(w => renderWalletRow(w)).join('')}
+          </tbody>
+        </table>
+      </div>`;
+
+    document.getElementById('leftPanel').innerHTML = html;
+  }
+
+  function renderWalletRow(w) {
+    const isTracked = trackedWallets.has(w.address);
+    const topTrades = (w.topTrades || []).slice(0, 3)
+      .map(t => `<span class="stat-chip hot">${t.symbol} ${t.multiplier?.toFixed(0)}x</span>`)
+      .join('');
+
+    return `
+      <tr>
+        <td><span class="grade grade-${w.grade}">${w.grade}</span></td>
+        <td>
+          <a class="wallet-addr" href="https://basescan.org/address/${w.address}" target="_blank">
+            ${w.address.slice(0,6)}...${w.address.slice(-4)}
+          </a>
+          ${w.isKOL ? '<span class="kol-badge" style="margin-left:6px">KOL</span>' : ''}
+          <div style="margin-top:4px">${topTrades}</div>
+        </td>
+        <td style="color:var(--text2)">${w.hoursAfterTokenLaunch}h</td>
+        <td>
+          <span style="color:${parseFloat(w.winRate)>50?'var(--green)':'var(--red)'}">${w.winRate}</span>
+          <div style="font-size:10px;color:var(--muted)">${w.wins}/${w.totalTrades}</div>
+        </td>
+        <td style="color:var(--yellow)">${w.avgMultiplier}</td>
+        <td style="color:var(--orange)">${w.tenXHits}</td>
+        <td style="color:var(--blue)">${w.avgLeadTimeHours}h</td>
+        <td>
+          <button class="track-btn ${isTracked ? 'tracking' : ''}" 
+            onclick="toggleTrack('${w.address}', ${JSON.stringify(w).replace(/"/g,'&quot;')})">
+            ${isTracked ? '● TRACKING' : '+ TRACK'}
+          </button>
+        </td>
+      </tr>`;
+  }
+
+  // ── Wallet tracking ───────────────────────────────────────────────────
+  function toggleTrack(address, walletData) {
+    if (trackedWallets.has(address)) {
+      trackedWallets.delete(address);
+      fetch(`/api/untrack?address=${address}`, { method: 'POST' });
+    } else {
+      trackedWallets.set(address, walletData);
+      fetch(`/api/track?address=${address}`, { method: 'POST' });
+    }
+    updateTrackedPanel();
+    // Re-render table without full re-analysis
+    if (analysisResult) renderAnalysis(analysisResult);
+  }
+
+  function updateTrackedPanel() {
+    const count = trackedWallets.size;
+    document.getElementById('trackedCount').textContent = `${count} wallet${count!==1?'s':''} tracked`;
+    document.getElementById('trackedPill').textContent = count;
+
+    const el = document.getElementById('trackedContainer');
+    if (!count) {
+      el.innerHTML = '<div class="empty">No wallets tracked yet.</div>';
+      return;
+    }
+
+    el.innerHTML = [...trackedWallets.entries()].map(([addr, w]) => `
+      <div class="tracked-wallet">
+        <div>
+          <a class="wallet-addr" href="https://basescan.org/address/${addr}" target="_blank">
+            ${addr.slice(0,8)}...${addr.slice(-6)}
+          </a>
+          <div style="margin-top:3px">
+            <span class="grade grade-${w.grade}" style="width:20px;height:20px;font-size:11px">${w.grade}</span>
+            <span style="font-size:10px;color:var(--text2);margin-left:6px">WR: ${w.winRate} · ${w.tenXHits} 10x hits</span>
+          </div>
+        </div>
+        <button class="track-btn tracking" onclick="toggleTrack('${addr}', {})">✕</button>
+      </div>`).join('');
+  }
+
+  // ── Poll for alerts ───────────────────────────────────────────────────
+  async function pollAlerts() {
+    try {
+      const res = await fetch('/api/alerts');
+      const data = await res.json();
+
+      if (data.alerts?.length) {
+        const newAlerts = data.alerts.filter(a => !alerts.find(x => x.txHash === a.txHash));
+        newAlerts.forEach(a => alerts.unshift(a));
+        if (alerts.length > 50) alerts.splice(50);
+        renderAlerts();
+      }
+    } catch {}
+  }
+
+  function renderAlerts() {
+    const count = alerts.length;
+    document.getElementById('alertCount').textContent = `${count} alert${count!==1?'s':''}`;
+    document.getElementById('liveAlertPill').textContent = count;
+
+    const el = document.getElementById('alertsContainer');
+    if (!count) {
+      el.innerHTML = '<div class="empty">No alerts yet.</div>';
+      return;
+    }
+
+    el.innerHTML = alerts.slice(0, 20).map(a => `
+      <div class="alert-card">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div class="alert-token">$${a.tokenSymbol || '???'}</div>
+          <span class="grade grade-${a.walletGrade}" style="width:22px;height:22px;font-size:11px">${a.walletGrade}</span>
+        </div>
+        <div class="alert-meta">
+          ${a.wallet.slice(0,8)}...${a.wallet.slice(-4)} bought
+          <a href="https://basescan.org/address/${a.tokenAddress}" target="_blank" style="color:var(--blue)">${a.tokenAddress.slice(0,8)}...</a>
+        </div>
+        <div style="margin-top:6px;display:flex;gap:8px">
+          <a href="https://dexscreener.com/base/${a.tokenAddress}" target="_blank" class="btn btn-outline btn-sm">Chart</a>
+          <a href="https://basescan.org/tx/${a.txHash}" target="_blank" class="btn btn-outline btn-sm" style="color:var(--text2);border-color:var(--border2)">TX</a>
+        </div>
+        <div class="alert-time">${new Date(a.ts).toLocaleTimeString()}</div>
+      </div>`).join('');
+  }
+
+  // ── Keyboard shortcut ─────────────────────────────────────────────────
+  document.getElementById('tokenInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter') analyzeToken();
+  });
+
+  // ── Start polling ─────────────────────────────────────────────────────
+  setInterval(pollAlerts, 15000);
+  pollAlerts();
+</script>
+</body>
+</html>
