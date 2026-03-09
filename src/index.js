@@ -59,46 +59,6 @@ app.use((req, res) => {
   res.sendFile(path.join(__dirname, "../public/index.html"));
 });
 
-
-
-
-app.get("/api/test", async (req, res) => {
-  const axios = require("axios");
-  const key = process.env.BASESCAN_API_KEY;
-  const logs = [];
-
-  logs.push(`KEY_FOUND: ${!!key}`);
-  logs.push(`KEY_VALUE: ${key ? key.slice(0, -3).replace(/.(?=.{4})/g, '*') + 'xxx' : 'MISSING'}`);
-  logs.push(`KEY_LENGTH: ${key?.length || 0}`);
-
-  const url = `https://api.etherscan.io/v2/api?chainid=8453&module=account&action=tokentx&contractaddress=0x973daf0ab015c894ebe7efcf94824d5f9d0e3566&sort=asc&offset=5&apikey=${key}`;
-  logs.push(`REQUEST_URL: ${url.replace(key, key?.slice(0,-3)+'xxx')}`);
-
-  try {
-    logs.push(`SENDING_REQUEST...`);
-    const r = await axios.get(url, { timeout: 15000 });
-    logs.push(`HTTP_STATUS: ${r.status}`);
-    logs.push(`ETHERSCAN_STATUS: ${r.data?.status}`);
-    logs.push(`ETHERSCAN_MESSAGE: ${r.data?.message}`);
-    logs.push(`RESULT_COUNT: ${r.data?.result?.length || 0}`);
-    logs.push(`RAW_RESPONSE: ${JSON.stringify(r.data).slice(0, 300)}`);
-    res.json({ ok: true, logs });
-  } catch (e) {
-    logs.push(`REQUEST_FAILED: ${e.message}`);
-    logs.push(`ERROR_CODE: ${e.code}`);
-    logs.push(`ERROR_STATUS: ${e.response?.status}`);
-    logs.push(`ERROR_BODY: ${JSON.stringify(e.response?.data || {}).slice(0, 200)}`);
-    res.json({ ok: false, logs });
-  }
-});
-
-
-
-
-
-
-
-
 app.listen(PORT, () => {
   console.log(`\n🔍 KOL Finder running → http://localhost:${PORT}`);
   console.log(`   Paste any Base token address to find KOL wallets\n`);
