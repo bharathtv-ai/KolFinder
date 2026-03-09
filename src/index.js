@@ -59,6 +59,30 @@ app.use((req, res) => {
   res.sendFile(path.join(__dirname, "../public/index.html"));
 });
 
+
+app.get("/api/test", async (req, res) => {
+  const axios = require("axios");
+  const key = process.env.BASESCAN_API_KEY;
+  try {
+    const r = await axios.get(
+      `https://api.etherscan.io/v2/api?chainid=8453&module=account&action=tokentx&contractaddress=0x973daf0ab015c894ebe7efcf94824d5f9d0e3566&sort=asc&offset=5&apikey=${key}`
+    );
+    res.json({
+      keyFound: !!key,
+      keyPreview: key ? key.slice(0,6)+"..." : "MISSING",
+      etherscanStatus: r.data?.status,
+      etherscanMessage: r.data?.message,
+      resultCount: r.data?.result?.length || 0
+    });
+  } catch(e) {
+    res.json({ keyFound: !!key, error: e.message });
+  }
+});
+
+
+
+
+
 app.listen(PORT, () => {
   console.log(`\n🔍 KOL Finder running → http://localhost:${PORT}`);
   console.log(`   Paste any Base token address to find KOL wallets\n`);
